@@ -12,9 +12,46 @@
 #include <unordered_map>
 namespace fs = std::filesystem;
 APPLICATION *application_pointer = nullptr;
+
+void create_settings() {
+  const fs::path path = "_macro_cache_/macro_settings.json";
+
+  fs::create_directories(path.parent_path());
+
+  json defaults = json::parse(json_macro_settings_default);
+  json current;
+
+  if (fs::exists(path)) {
+    std::ifstream in(path);
+    try {
+      in >> current;
+    } catch (...) {
+      current = defaults;
+    }
+  } else {
+    std::ofstream out(path);
+    out << defaults.dump(2);
+    return;
+  }
+
+  bool changed = false;
+
+  for (auto &[key, value] : defaults.items()) {
+    if (!current.contains(key)) {
+      current[key] = value;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    std::ofstream out(path);
+    out << current.dump(2);
+  }
+}
 APPLICATION::APPLICATION() {
   if (!glfwInit())
     exit(1);
+  create_settings();
   json json_settings =
       json::parse(std::ifstream("_macro_cache_/macro_settings.json"));
   this->settings = new SETTINGS();
