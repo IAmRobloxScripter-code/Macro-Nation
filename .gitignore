@@ -1,0 +1,6 @@
+./app
+./CMakeCache.txt
+./cmake_install.cmake
+./Makefile
+./imgui.ini
+./_macro_cache_/macro_settings.json
