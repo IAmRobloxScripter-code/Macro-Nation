@@ -1,6 +1,0 @@
-/home/scripting_entity/Desktop/projects/Macro Nation/CMakeFiles/patterns_impl.dir
-/home/scripting_entity/Desktop/projects/Macro Nation/CMakeFiles/fields_impl.dir
-/home/scripting_entity/Desktop/projects/Macro Nation/CMakeFiles/sub_macros.dir
-/home/scripting_entity/Desktop/projects/Macro Nation/CMakeFiles/app.dir
-/home/scripting_entity/Desktop/projects/Macro Nation/CMakeFiles/edit_cache.dir
-/home/scripting_entity/Desktop/projects/Macro Nation/CMakeFiles/rebuild_cache.dir
