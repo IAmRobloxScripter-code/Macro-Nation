@@ -46,7 +46,8 @@ void update_json_settings(INTERFACE *self) {
                      {"slot_4", self->settings->slot_4},
                      {"slot_5", self->settings->slot_5},
                      {"slot_6", self->settings->slot_6},
-                     {"slot_7", self->settings->slot_7}};
+                     {"slot_7", self->settings->slot_7},
+                     {"clock", self->settings->clock}};
   std::ofstream file("_macro_cache_/macro_settings.json");
   if (!file.is_open()) {
     exit(1);
@@ -119,6 +120,8 @@ void INTERFACE::collect_and_kill_tab_button() {
     ImGui::SetWindowFontScale(2);
     ImGui::Text("%s", "Collect");
     ImGui::SetWindowFontScale(1.5);
+    ImGui::Spacing();
+    this->clock_checkbox();
     ImGui::Spacing();
     this->mondo_group();
     ImGui::EndTabItem();
@@ -316,6 +319,12 @@ void INTERFACE::boost_tab_button() {
     ImGui::Spacing();
     this->slots_group();
     ImGui::EndTabItem();
+  }
+}
+
+void INTERFACE::clock_checkbox() {
+  if (ImGui::Checkbox("Clock", &this->settings->clock)) {
+    update_json_settings(this);
   }
 }
 

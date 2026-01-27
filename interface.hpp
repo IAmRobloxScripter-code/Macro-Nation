@@ -52,4 +52,5 @@ public:
   void boost_tab_button();
   void mondo_group();
   void slots_group();
+  void clock_checkbox();
 };

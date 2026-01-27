@@ -77,6 +77,7 @@ APPLICATION::APPLICATION() {
   this->settings->slot_5 = json_settings["slot_5"];
   this->settings->slot_6 = json_settings["slot_6"];
   this->settings->slot_7 = json_settings["slot_7"];
+  this->settings->clock = json_settings["clock"];
 
   std::map<std::string, json> fields_data;
   std::map<std::string, json> patterns_data;
@@ -140,10 +141,9 @@ void APPLICATION::action_collect() {
 
 static std::unordered_map<std::string, BITMAP> bitmaps = {
     {"pBMSupremeSaturator",
-     bitmap_from_base64("iVBORw0KGgoAAAANSUhEUgAAAAsAAAANCAYAAAB/"
-                        "9ZQ7AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcw"
-                        "AADsMAAA7DAcdvqGQAAAAZSURBVChTY2C88f8/sXhUMTIeVYzA//"
-                        "8DAD1Dlimzf8yLAAAAAElFTkSuQmCC")},
+     bitmap_from_base64("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAUCAIAAAA7jDsBAAAACXBIWX"
+                        "MAAA7EAAAOxAGVKw4bAAAAGElEQVQokWNk/"
+                        "P+fATdgwiM3Kj0qTZI0AAO/Aid65Bz+AAAAAElFTkSuQmCC")},
     {"pBMSprinklerSlot_Day",
      bitmap_from_base64(
          "iVBORw0KGgoAAAANSUhEUgAAADoAAAAfCAIAAAA5uEn6AAAACXBIWXMAAA7EAAAOxAGVK"
@@ -233,6 +233,7 @@ void APPLICATION::check_hive() {
   sleep(50);
   this->output->key_press("period");
   sleep(50);
+  pBMArea = this->input->capture_display(670, 970, 120, 100);
   if (found_hive_rotated &&
       (image_search(pBMArea, bitmaps["pBMSprinklerSlot_Day"], nullptr, nullptr,
                     0, 0, pBMArea.width, pBMArea.height, 30) ||
@@ -263,11 +264,11 @@ void APPLICATION::action_drift_comp() {
   u64 center_x = pBMArea.width / 2;
   u64 center_y = pBMArea.height / 2;
 
-  u64 area_x_left_bound = center_x - 64;
-  u64 area_y_top_bound = center_y - 64;
+  u64 area_x_left_bound = center_x - 128;
+  u64 area_y_top_bound = center_y - 128;
 
-  u64 area_x_right_bound = center_x + 64;
-  u64 area_y_bottom_bound = center_y + 64;
+  u64 area_x_right_bound = center_x + 128;
+  u64 area_y_bottom_bound = center_y + 128;
 
   if (image_search(pBMArea, bitmaps["pBMSupremeSaturator"], nullptr, nullptr,
                    area_x_left_bound, area_y_top_bound, area_x_right_bound,
@@ -286,6 +287,10 @@ void APPLICATION::action_drift_comp() {
         this->machine_state->placed_sprinkler = false;
         this->place_sprinkler();
       }
+      // this->output->key_up("w");
+      // this->output->key_up("a");
+      // this->output->key_up("s");
+      // this->output->key_up("d");
 #ifdef DEBUG
       std::cout << "FAIL_SAFE" << std::endl;
 #endif
@@ -305,32 +310,40 @@ void APPLICATION::action_drift_comp() {
       if (x <= area_x_left_bound && area_x_right_bound >= x &&
           y <= area_y_top_bound && area_y_bottom_bound >= y) {
         walk(flower_distance, forwards_left);
+        continue;
       }
       if (x >= area_x_left_bound && area_x_right_bound <= x &&
           y <= area_y_top_bound && area_y_bottom_bound >= y) {
         walk(flower_distance, forwards_right);
+        continue;
       }
 
       if (x <= area_x_left_bound && area_x_right_bound >= x &&
           y >= area_y_top_bound && area_y_bottom_bound <= y) {
         walk(flower_distance, backwards_left);
+        continue;
       }
       if (x >= area_x_left_bound && area_x_right_bound <= x &&
           y >= area_y_top_bound && area_y_bottom_bound <= y) {
         walk(flower_distance, backwards_right);
+        continue;
       }
 
       if (x <= area_x_left_bound && area_x_right_bound >= x) {
         walk(flower_distance, left);
+        continue;
       }
       if (x >= area_x_left_bound && area_x_right_bound <= x) {
         walk(flower_distance, right);
+        continue;
       }
       if (y <= area_y_top_bound && area_y_bottom_bound >= y) {
         walk(flower_distance, forwards);
+        continue;
       }
       if (y >= area_y_top_bound && area_y_bottom_bound <= y) {
         walk(flower_distance, backwards);
+        continue;
       }
     } else {
       if (search_area_negate_x > 0) {
@@ -339,18 +352,36 @@ void APPLICATION::action_drift_comp() {
       if (search_area_negate_y > 0) {
         search_area_negate_y -= 50;
       }
-      tolerance += 15;
+      tolerance += 3;
+      if (search_area_negate_x < 0 && search_area_negate_y < 0) {
+        if (this->running) {
+          this->machine_state->placed_sprinkler = false;
+          this->place_sprinkler();
+        }
+        // this->output->key_up("w");
+        // this->output->key_up("a");
+        // this->output->key_up("s");
+        // this->output->key_up("d");
+#ifdef DEBUG
+        std::cout << "FAIL_SAFE" << std::endl;
+#endif
+        return;
+      }
     }
     sleep(20);
   } while (this->running && collect_timer_check() &&
-           search_area_negate_x >= 0 && search_area_negate_y >= 0 &&
+           (search_area_negate_x >= 0 || search_area_negate_y >= 0) &&
            !image_search(pBMArea, bitmaps["pBMSupremeSaturator"], nullptr,
                          nullptr, area_x_left_bound, area_y_top_bound,
                          area_x_right_bound, area_y_bottom_bound, tolerance));
-  if (this->running) {
-    this->machine_state->placed_sprinkler = false;
-    this->place_sprinkler();
-  }
+  // if (this->running) {
+  //   this->machine_state->placed_sprinkler = false;
+  //   this->place_sprinkler();
+  // }
+  // this->output->key_up("w");
+  // this->output->key_up("a");
+  // this->output->key_up("s");
+  // this->output->key_up("d");
 }
 
 void APPLICATION::to_field() {
@@ -405,17 +436,16 @@ void APPLICATION::convert() {
   this->use_hotbar(HOTBAR_USE_METHOD::On_Convert);
   while (this->running && this->machine_state->at_hive &&
          this->machine_state->converting) {
-    sleep(1000) if (image_search(pBMArea, bitmaps["pBMButtonE"], nullptr,
-                                 nullptr, 0, 0, pBMArea.width, pBMArea.width,
-                                 12)) {
+    sleep(1000);
+    if (image_search(pBMArea, bitmaps["pBMButtonE"], nullptr, nullptr, 0, 0,
+                     pBMArea.width, pBMArea.width, 12)) {
       this->machine_state->converting = true;
       pBMArea = this->input->capture_display(790, 70, 60, 60);
 #ifdef DEBUG
       pBMArea.save_png("captured_E.png", 4);
 #endif
       continue;
-    }
-    else {
+    } else {
       this->machine_state->converting = false;
       break;
     }
@@ -488,6 +518,23 @@ void APPLICATION::use_hotbar(HOTBAR_USE_METHOD method) {
   }
 }
 
+bool APPLICATION::clock() {
+  if (!this->settings->clock) {
+    return false;
+  }
+  bool can_collect =
+      (since_boot() - this->machine_state->last_clock_check) >= (60 * 60);
+  if (can_collect || this->machine_state->last_clock_check == 0) {
+    this->machine_state->last_clock_check = since_boot();
+    auto it = sub_macros().find("clock");
+    if (it != sub_macros().end()) {
+      it->second();
+    }
+    return true;
+  }
+  return false;
+}
+
 void APPLICATION::step() {
   this->align_mouse();
   while (this->running && !this->machine_state->at_hive) {
@@ -497,11 +544,14 @@ void APPLICATION::step() {
   wait_for(1000);
   this->convert();
   this->align_mouse();
-  wait_for(1000);
+  wait_for(3000);
   this->machine_state->converting = false;
   this->machine_state->at_hive = false;
   this->to_red_cannon();
   this->align_mouse();
+  if (this->clock()) {
+    return;
+  }
   if (this->mondo()) {
     this->use_hotbar(HOTBAR_USE_METHOD::On_Mondo);
     sleep(1000 * application_pointer->settings->mondo_wait);
@@ -534,7 +584,7 @@ void APPLICATION::step() {
       }
       if (this->settings->drift_comp) {
         this->machine_state->drift_comp_collection_tick++;
-        if (this->machine_state->drift_comp_collection_tick >= 10) {
+        if (this->machine_state->drift_comp_collection_tick >= 2) {
           this->machine_state->drift_comp_collection_tick = 0;
           this->action_drift_comp();
         }

@@ -96,10 +96,11 @@ inline void walk(u64 tiles, move_direction direction, bool apply_speed = true) {
 }
 
 #define sleep(ms)                                                              \
-  if (!application_pointer->running) {                                         \
+  if (!application_pointer->running)                                           \
     return;                                                                    \
-  }                                                                            \
-  wait_for(ms);
+  wait_for(ms);                                                                \
+  if (!application_pointer->running)                                           \
+    return;
 
 inline void face_left() {
   application_pointer->output->key_press("comma");

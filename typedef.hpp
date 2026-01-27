@@ -4,6 +4,7 @@ struct SETTINGS {
   bool walk_to_hive = false;
   bool drift_comp = false;
   bool mondo = false;
+  bool clock = false;
   int mondo_wait = 60;
   int convert_every = 10;
   int selected_hive = 1;
@@ -50,6 +51,7 @@ inline std::string json_macro_settings_default = R"json(
   "stop key": "F8",
   "walk to hive": false,
   "webhook": "",
-  "width": 2
+  "width": 2,
+  "clock": false
 }
 )json";

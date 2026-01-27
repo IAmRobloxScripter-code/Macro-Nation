@@ -19,6 +19,7 @@ struct STATE {
   bool checked_mondo = false;
 
   int collecting_begin = 0;
+  int last_clock_check = 0;
   int drift_comp_collection_tick = 0;
   FACES facing = FACES::Forward;
 };
@@ -59,6 +60,7 @@ public:
   void align_mouse();
   void use_hotbar(HOTBAR_USE_METHOD method);
   bool mondo();
+  bool clock();
 };
 
 extern APPLICATION *application_pointer;
