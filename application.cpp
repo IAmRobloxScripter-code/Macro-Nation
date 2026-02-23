@@ -223,6 +223,11 @@ void APPLICATION::check_hive() {
   }
   sleep(50);
   this->output->key_press("comma");
+  sleep(10);
+  this->output->key_press("comma");
+  sleep(10);
+  this->output->key_press("comma");
+  sleep(10);
   this->machine_state->facing = FACES::Forward;
   BITMAP pBMArea = this->input->capture_display(670, 970, 120, 100);
   bool found_hive_rotated =
@@ -231,7 +236,6 @@ void APPLICATION::check_hive() {
       image_search(pBMArea, bitmaps["pBMSprinklerSlot_Night"], nullptr, nullptr,
                    0, 0, pBMArea.width, pBMArea.height, 70);
   sleep(50);
-  this->output->key_press("period");
   sleep(50);
   pBMArea = this->input->capture_display(670, 970, 120, 100);
   if (found_hive_rotated &&
@@ -241,6 +245,12 @@ void APPLICATION::check_hive() {
                     nullptr, 0, 0, pBMArea.width, pBMArea.height, 70))) {
     this->machine_state->at_hive = true;
     this->use_hotbar(HOTBAR_USE_METHOD::At_Hive);
+  this->output->key_press("period");
+  sleep(10);
+  this->output->key_press("period");
+  sleep(10);
+  this->output->key_press("period");
+  sleep(10);
 #ifdef DEBUG
     std::cout << "FOUND HIVE" << std::endl;
 #endif
