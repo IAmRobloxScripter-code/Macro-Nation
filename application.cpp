@@ -5,6 +5,7 @@
 #include "macro_lib_impl.hpp"
 #include "utils.hpp"
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/detail/meta/type_traits.hpp>
@@ -46,96 +47,6 @@ void create_settings() {
   if (changed) {
     std::ofstream out(path);
     out << current.dump(2);
-  }
-}
-APPLICATION::APPLICATION() {
-  if (!glfwInit())
-    exit(1);
-  create_settings();
-  json json_settings =
-      json::parse(std::ifstream("_macro_cache_/macro_settings.json"));
-  this->settings = new SETTINGS();
-  this->settings->walk_to_hive = json_settings["walk to hive"];
-  this->settings->convert_every = json_settings["convert every"];
-  this->settings->selected_field = json_settings["field"];
-  this->settings->selected_pattern = json_settings["pattern"];
-  this->settings->selected_hive = json_settings["hive"];
-  this->settings->base_walkspeed = json_settings["base walkspeed"];
-  this->settings->start_key = json_settings["start key"];
-  this->settings->stop_key = json_settings["stop key"];
-  this->settings->discord_webhook = json_settings["webhook"];
-  this->settings->selected_theme = json_settings["selected theme"];
-  this->settings->width = json_settings["width"];
-  this->settings->length = json_settings["length"];
-  this->settings->drift_comp = json_settings["drift_comp"];
-  this->settings->direction = json_settings["direction"];
-  this->settings->mondo = json_settings["mondo"];
-  this->settings->mondo_wait = json_settings["mondo_wait"];
-  this->settings->slot_2 = json_settings["slot_2"];
-  this->settings->slot_3 = json_settings["slot_3"];
-  this->settings->slot_4 = json_settings["slot_4"];
-  this->settings->slot_5 = json_settings["slot_5"];
-  this->settings->slot_6 = json_settings["slot_6"];
-  this->settings->slot_7 = json_settings["slot_7"];
-  this->settings->clock = json_settings["clock"];
-
-  std::map<std::string, json> fields_data;
-  std::map<std::string, json> patterns_data;
-  std::vector<std::string> fields_display;
-  std::vector<std::string> patterns_display;
-
-  for (const auto &entry : fs::directory_iterator("_macro_cache_/fields")) {
-    if (entry.is_regular_file()) {
-      json entry_data = json::parse(std::ifstream(entry.path()));
-      fields_data[entry_data["display"]] = entry_data;
-      fields_display.push_back(entry_data["display"]);
-    }
-  }
-
-  for (const auto &entry : fs::directory_iterator("_macro_cache_/patterns")) {
-    if (entry.is_regular_file()) {
-      json entry_data = json::parse(std::ifstream(entry.path()));
-      patterns_data[entry_data["display"]] = entry_data;
-      patterns_display.push_back(entry_data["display"]);
-    }
-  }
-
-  this->raw_data = new RAW_DATA;
-  this->machine_state = new STATE;
-  this->input = new X11_INPUT();
-  this->output = new X11_OUTPUT();
-  this->interface = new INTERFACE(fields_display, patterns_display);
-  this->interface->REHOOK_KEY_EVENT =
-      new SIGNAL<void(const std::string &, REHOOK_KEY_EVENT_TYPE)>;
-  this->interface->settings = this->settings;
-  this->raw_data->RAW_FIELDS_DATA = fields_data;
-  this->raw_data->RAW_PATTERNS_DATA = patterns_data;
-  strcpy(this->interface->DISCORD_WEBHOOK_URL,
-         this->settings->discord_webhook.c_str());
-  init_create_bitmaps();
-  application_pointer = this;
-  std::thread application_thread([this]() { this->main(); });
-  while (!glfwWindowShouldClose(this->interface->window)) {
-    this->interface->render();
-  }
-
-  glfwDestroyWindow(this->interface->window);
-  glfwTerminate();
-  this->input->stop();
-  application_thread.join();
-}
-static const std::vector<float> pattern_size_options = {0.25, 0.5, 1, 1.5, 2};
-void APPLICATION::action_collect() {
-  json pattern_data =
-      this->raw_data->RAW_PATTERNS_DATA
-          [this->interface->PATTERN_OPTIONS[this->settings->selected_pattern]];
-  const std::string pattern_name = pattern_data["name"];
-  auto it = patterns_impl().find(pattern_name);
-  if (it != patterns_impl().end()) {
-    this->output->mouse_down();
-    it->second(this->settings->width,
-               pattern_size_options[this->settings->length]);
-    this->output->mouse_up();
   }
 }
 
@@ -206,7 +117,107 @@ static std::unordered_map<std::string, BITMAP> bitmaps = {
          "GWY"
          "CMFqqjRo8aPWo0EYDSQhUO0lIyjAyNkUWGZoDQ0GjG0X7jqNF4AQDPzBYvH6p8QQAA"
          "AAB"
-         "JRU5ErkJggg==")}};
+         "JRU5ErkJggg==")},
+    {"pBMGrayPixel", create_bitmap(1, 1)},
+    {"pBMWhitePixel", create_bitmap(1, 1)}};
+
+void create_application_bitmaps() {
+  fill_bitmap(bitmaps["pBMGrayPixel"], 0xff686e6b);
+  fill_bitmap(bitmaps["pBMWhitePixel"], 0xffffff);
+}
+
+APPLICATION::APPLICATION() {
+  if (!glfwInit())
+    exit(1);
+  create_settings();
+  json json_settings =
+      json::parse(std::ifstream("_macro_cache_/macro_settings.json"));
+  this->settings = new SETTINGS();
+  this->settings->walk_to_hive = json_settings["walk to hive"];
+  this->settings->convert_every = json_settings["convert every"];
+  this->settings->selected_field = json_settings["field"];
+  this->settings->selected_pattern = json_settings["pattern"];
+  this->settings->selected_hive = json_settings["hive"];
+  this->settings->base_walkspeed = json_settings["base walkspeed"];
+  this->settings->start_key = json_settings["start key"];
+  this->settings->stop_key = json_settings["stop key"];
+  this->settings->discord_webhook = json_settings["webhook"];
+  this->settings->selected_theme = json_settings["selected theme"];
+  this->settings->width = json_settings["width"];
+  this->settings->length = json_settings["length"];
+  this->settings->drift_comp = json_settings["drift_comp"];
+  this->settings->direction = json_settings["direction"];
+  this->settings->mondo = json_settings["mondo"];
+  this->settings->mondo_wait = json_settings["mondo_wait"];
+  this->settings->slot_2 = json_settings["slot_2"];
+  this->settings->slot_3 = json_settings["slot_3"];
+  this->settings->slot_4 = json_settings["slot_4"];
+  this->settings->slot_5 = json_settings["slot_5"];
+  this->settings->slot_6 = json_settings["slot_6"];
+  this->settings->slot_7 = json_settings["slot_7"];
+  this->settings->clock = json_settings["clock"];
+  this->settings->backpack = json_settings["backpack"];
+  this->settings->shiftlock = json_settings["shiftlock"];
+
+  std::map<std::string, json> fields_data;
+  std::map<std::string, json> patterns_data;
+  std::vector<std::string> fields_display;
+  std::vector<std::string> patterns_display;
+
+  for (const auto &entry : fs::directory_iterator("_macro_cache_/fields")) {
+    if (entry.is_regular_file()) {
+      json entry_data = json::parse(std::ifstream(entry.path()));
+      fields_data[entry_data["display"]] = entry_data;
+      fields_display.push_back(entry_data["display"]);
+    }
+  }
+
+  for (const auto &entry : fs::directory_iterator("_macro_cache_/patterns")) {
+    if (entry.is_regular_file()) {
+      json entry_data = json::parse(std::ifstream(entry.path()));
+      patterns_data[entry_data["display"]] = entry_data;
+      patterns_display.push_back(entry_data["display"]);
+    }
+  }
+
+  this->raw_data = new RAW_DATA;
+  this->machine_state = new STATE;
+  this->input = new X11_INPUT();
+  this->output = new X11_OUTPUT();
+  this->interface = new INTERFACE(fields_display, patterns_display);
+  this->interface->REHOOK_KEY_EVENT =
+      new SIGNAL<void(const std::string &, REHOOK_KEY_EVENT_TYPE)>;
+  this->interface->settings = this->settings;
+  this->raw_data->RAW_FIELDS_DATA = fields_data;
+  this->raw_data->RAW_PATTERNS_DATA = patterns_data;
+  strcpy(this->interface->DISCORD_WEBHOOK_URL,
+         this->settings->discord_webhook.c_str());
+  init_create_bitmaps();
+  create_application_bitmaps();
+  application_pointer = this;
+  std::thread application_thread([this]() { this->main(); });
+  while (!glfwWindowShouldClose(this->interface->window)) {
+    this->interface->render();
+  }
+  glfwDestroyWindow(this->interface->window);
+  glfwTerminate();
+  this->input->stop();
+  application_thread.join();
+}
+static const std::vector<float> pattern_size_options = {0.25, 0.5, 1, 1.5, 2};
+void APPLICATION::action_collect() {
+  json pattern_data =
+      this->raw_data->RAW_PATTERNS_DATA
+          [this->interface->PATTERN_OPTIONS[this->settings->selected_pattern]];
+  const std::string pattern_name = pattern_data["name"];
+  auto it = patterns_impl().find(pattern_name);
+  if (it != patterns_impl().end()) {
+    this->output->mouse_down();
+    it->second(this->settings->width,
+               pattern_size_options[this->settings->length]);
+    this->output->mouse_up();
+  }
+}
 
 void APPLICATION::check_hive() {
   this->output->key_press("Escape");
@@ -352,7 +363,7 @@ void APPLICATION::action_drift_comp() {
       if (search_area_negate_y > 0) {
         search_area_negate_y -= 50;
       }
-      tolerance += 3;
+      tolerance += 15;
       if (search_area_negate_x < 0 && search_area_negate_y < 0) {
         if (this->running) {
           this->machine_state->placed_sprinkler = false;
@@ -468,7 +479,21 @@ void APPLICATION::finish_collect() {
       this->output->key_press("Return");
       sleep(5 * 1000);
     } else {
-      return;
+      this->machine_state->at_hive = false;
+      this->machine_state->converting = false;
+      this->machine_state->collecting = false;
+      this->machine_state->placed_sprinkler = false;
+      this->machine_state->checked_mondo = false;
+      this->machine_state->drift_comp_collection_tick = 0;
+      json field_data =
+          this->raw_data->RAW_FIELDS_DATA
+              [this->interface->FIELD_OPTIONS[this->settings->selected_field]];
+      const std::string field_name = field_data["name"];
+      auto it = fields_impl().find(field_name);
+      if (it != fields_impl().end()) {
+        it->second(true);
+      }
+      sleep(1000);
     }
   }
 }
@@ -535,9 +560,40 @@ bool APPLICATION::clock() {
   return false;
 }
 
+// 1019 x 26 , 221 x 1
+// 10 x 102
+// 318 x 54
+void APPLICATION::close_open_menus() {
+  BITMAP pBMArea = this->input->capture_display(10, 110, 318, 4);
+  u64 found_x = 0;
+
+  if (image_search(pBMArea, bitmaps["pBMWhitePixel"], &found_x, nullptr, 0, 0,
+                   pBMArea.width, pBMArea.height, 16)) {
+    this->output->mouse_move(found_x, 110);
+    sleep(20);
+    this->output->mouse_press();
+    sleep(20);
+  }
+}
+
+bool APPLICATION::is_backpack_over_limit() {
+  BITMAP pBMArea = this->input->capture_display(1019, 26, 221, 1);
+  u64 found_x = 0;
+  pBMArea.save_png("capacity.png", 4);
+  image_search(pBMArea, bitmaps["pBMGrayPixel"], &found_x, nullptr, 0, 0,
+               pBMArea.width, pBMArea.height, 24);
+  u64 percent = (double(found_x) / double(pBMArea.width)) * 100;
+  std::cout << percent << std::endl;
+  return percent >= this->settings->backpack;
+}
+
 void APPLICATION::step() {
+  shiftlock(false);
+  this->close_open_menus();
   this->align_mouse();
   while (this->running && !this->machine_state->at_hive) {
+    this->close_open_menus();
+    this->align_mouse();
     this->check_hive();
     wait_for(1000);
   }
@@ -575,16 +631,25 @@ void APPLICATION::step() {
     this->use_hotbar(HOTBAR_USE_METHOD::Gather_Start);
     while (this->running && this->machine_state->collecting &&
            this->collect_timer_check()) {
-      this->action_collect();
-      this->align_mouse();
-      if (this->mondo()) {
-        this->use_hotbar(HOTBAR_USE_METHOD::On_Mondo);
-        sleep(1000 * application_pointer->settings->mondo_wait);
-        return;
+      if (this->settings->shiftlock) {
+        shiftlock(true);
       }
+      this->action_collect();
+      if (!this->settings->shiftlock) {
+        this->align_mouse();
+      }
+      if (this->is_backpack_over_limit()) {
+        this->machine_state->collecting = false;
+        break;
+      }
+      // if (this->mondo()) {
+      //   this->use_hotbar(HOTBAR_USE_METHOD::On_Mondo);
+      //   sleep(1000 * application_pointer->settings->mondo_wait);
+      //   return;
+      // }
       if (this->settings->drift_comp) {
         this->machine_state->drift_comp_collection_tick++;
-        if (this->machine_state->drift_comp_collection_tick >= 2) {
+        if (this->machine_state->drift_comp_collection_tick >= 5) {
           this->machine_state->drift_comp_collection_tick = 0;
           this->action_drift_comp();
         }
@@ -597,6 +662,7 @@ void APPLICATION::step() {
     std::cout << "COLLECTION ENDED" << std::endl;
 #endif
   }
+  shiftlock(false);
   this->align_mouse();
   this->finish_collect();
   sleep(1000);

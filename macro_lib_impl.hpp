@@ -114,6 +114,38 @@ inline void face_right() {
   application_pointer->output->key_press("period");
 }
 
+inline void point_in_global_direction(FACES face) {
+  while (application_pointer->running &&
+         application_pointer->machine_state->facing != face) {
+    face_right();
+    if (application_pointer->machine_state->facing == FACES::Forward) {
+      application_pointer->machine_state->facing = FACES::Right;
+    } else if (application_pointer->machine_state->facing == FACES::Right) {
+      application_pointer->machine_state->facing = FACES::Backward;
+    } else if (application_pointer->machine_state->facing == FACES::Backward) {
+      application_pointer->machine_state->facing = FACES::Left;
+    } else if (application_pointer->machine_state->facing == FACES::Left) {
+      application_pointer->machine_state->facing = FACES::Forward;
+    }
+
+    sleep(20)
+  }
+}
+
+inline void shiftlock(bool enable = false) {
+  if (enable) {
+    if (has_shiftlock()) {
+      return;
+    }
+    application_pointer->output->key_press("Shift_L");
+  } else {
+    if (!has_shiftlock()) {
+      return;
+    }
+    application_pointer->output->key_press("Shift_L");
+  }
+}
+
 inline std::unordered_map<std::string, void (*)(int, int)> &patterns_impl() {
   static std::unordered_map<std::string, void (*)(int, int)> registry;
   return registry;

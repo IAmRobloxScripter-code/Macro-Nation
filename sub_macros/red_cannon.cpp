@@ -7,13 +7,13 @@ void to_cannon() {
   sleep(20);
   if (application_pointer->settings->selected_hive > 1) {
     loop(application_pointer->settings->selected_hive - 1) {
-      walk(1, right);
+      walk(2, right);
       sleep(20);
-      walk(6, right);
+      walk(8, right);
       sleep(20);
     }
 
-    walk(3, right);
+    walk(4, right);
     sleep(20);
   } else {
     walk(3, right);

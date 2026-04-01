@@ -59,8 +59,10 @@ public:
   void finish_collect();
   void align_mouse();
   void use_hotbar(HOTBAR_USE_METHOD method);
+  bool is_backpack_over_limit();
   bool mondo();
   bool clock();
+  void close_open_menus();
 };
 
 extern APPLICATION *application_pointer;

@@ -13,5 +13,11 @@ exit(1);
 
 int main() {
   APPLICATION app;
+  delete app.input;
+  delete app.output;
+  delete app.interface;
+  delete app.machine_state;
+  delete app.settings;
+  delete app.raw_data;
   return 0;
 }

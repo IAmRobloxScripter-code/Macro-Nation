@@ -5,6 +5,7 @@ struct SETTINGS {
   bool drift_comp = false;
   bool mondo = false;
   bool clock = false;
+  bool shiftlock = false;
   int mondo_wait = 60;
   int convert_every = 10;
   int selected_hive = 1;
@@ -20,6 +21,7 @@ struct SETTINGS {
   int slot_5 = 0;
   int slot_6 = 0;
   int slot_7 = 0;
+  int backpack = 95;
 
   float base_walkspeed = 16;
 
@@ -52,6 +54,8 @@ inline std::string json_macro_settings_default = R"json(
   "walk to hive": false,
   "webhook": "",
   "width": 2,
-  "clock": false
+  "clock": false,
+  "backpack": 95,
+  "shiftlock": false
 }
 )json";

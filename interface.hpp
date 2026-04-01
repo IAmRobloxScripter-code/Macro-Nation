@@ -53,4 +53,5 @@ public:
   void mondo_group();
   void slots_group();
   void clock_checkbox();
+  void backpack_percent();
 };

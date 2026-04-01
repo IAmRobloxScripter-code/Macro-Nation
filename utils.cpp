@@ -1,3 +1,4 @@
+#include "application.hpp"
 #include "imgui/imgui.h"
 #include <cstdlib>
 #include <unordered_map>
@@ -7,6 +8,7 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "utils.hpp"
+#include <fstream>
 
 BITMAP::BITMAP(u64 width, u64 height, std::vector<u8> pixels) {
   this->width = width;
@@ -99,10 +101,6 @@ u64 query_performance_counter() {
 }
 
 u64 query_performance_frequency() { return 1000000000ULL; }
-
-bool in_range(u64 number, u64 min_range, u64 max_range) {
-  return number >= min_range && number <= max_range;
-}
 
 bool image_search(BITMAP &area, BITMAP &template_bitmap, u64 *found_x,
                   u64 *found_y, u64 x_start, u64 y_start, u64 x_end, u64 y_end,
@@ -235,6 +233,43 @@ u64 get_utc_minute() {
 
   return utc.tm_min;
 }
+BITMAP pBMShiftlock = bitmap_from_base64(
+    "iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAB/"
+    "UlEQVR4Ae3AA6AkWZbG8f937o3IzKdyS2Oubdu2bdu2bdu2bWmMnpZKr54yMyLu+"
+    "Xa3anqmhztr1a/yQvTfm+a5DO8Z6r83zQMYM75nEc8LAPEC9N+bBhjeM8S/oP/"
+    "eNMDwniGeEwDiuXTf2yzE8J4h/"
+    "pX6700DDO8Z4goAggfovzcNMLxniH+D4T1DAP33prkCgOCZ+u9NA4zvWcS/w/"
+    "CeIYD+e9MAAMEDDO8Z4j/A8J4hrgBAAP33pof3DPEv6L43zTON7xniX9B/"
+    "b3p4z1DtvrfZmH9J973p8T1DPFP3venxPUO8cPTfmw4hxvcs4oXovjc9vmeIBxjfM9R9b5oXYn"
+    "jPEEDlPxcAlRei+940z9R9b5rno/veNMD4niGeFwDBC9B9b5p/he570zwvAMQL0H1vGmB8zxD/"
+    "gu570wDje4Z4TgBE/71p/vPQf2+68p8LgMp/LgAq/"
+    "7kAqMZ039s8vmcRz0f3vWn+jfrvTQPE+J5FQjy38T1D/CuM7xnieTG8Z0g8U/+96eE9Q/"
+    "wH6b83PbxnCCB4gP570/wH6L83zRUABM80vGcIoP/eNP8O/femAYb3DAEABA8wvGcIoP/"
+    "eNP8G/femAYb3DHEFAOIF6L83DTC8Z4h/Qf+9aYDhPUM8JwDEC9F9b7MQDzS8Z6j/"
+    "3jTPZXjPEM8LgH8EcSqs0dTK5G0AAAAASUVORK5CYII=");
+bool has_shiftlock() {
+  BITMAP pBMArea =
+      application_pointer->input->capture_display(10, 1000, 70, 70);
+  return image_search(pBMArea, pBMShiftlock, nullptr, nullptr, 0, 0,
+                      pBMArea.width, pBMArea.height, 3);
+}
 
 std::unordered_map<std::string, std::vector<u8>> FIELD_SIZES = {
-    {"pine_tree_forest", {23, 31}}};
+    {"Pine Tree Forest", {23, 31}}, {"Strawberry", {22, 26}}};
+
+BITMAP bitmap_from_png(const std::string &filepath) {
+  std::ifstream file(filepath, std::ios::binary);
+  std::vector<u8> png = std::vector<u8>(std::istreambuf_iterator<char>(file),
+                                        std::istreambuf_iterator<char>());
+  int width, height, channels;
+  unsigned char *pixels = stbi_load_from_memory(png.data(), png.size(), &width,
+                                                &height, &channels, 4);
+  if (!pixels) {
+    return BITMAP(0, 0, {});
+  }
+
+  std::vector<u8> bitmap_data(pixels, pixels + (width * height * 4));
+  stbi_image_free(pixels);
+
+  return BITMAP(width, height, bitmap_data);
+}

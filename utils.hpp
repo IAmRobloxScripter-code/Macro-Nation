@@ -278,6 +278,30 @@ public:
     XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
     XFlush(display);
   }
+
+  void mouse_scroll_down(int clicks = 1) {
+    if (!display)
+      return;
+
+    for (int i = 0; i < clicks; i++) {
+      XTestFakeButtonEvent(display, 5, True, CurrentTime);
+      XTestFakeButtonEvent(display, 5, False, CurrentTime);
+    }
+
+    XFlush(display);
+  }
+
+  void mouse_scroll_up(int clicks = 1) {
+    if (!display)
+      return;
+
+    for (int i = 0; i < clicks; i++) {
+      XTestFakeButtonEvent(display, 4, True, CurrentTime);
+      XTestFakeButtonEvent(display, 4, False, CurrentTime);
+    }
+
+    XFlush(display);
+  }
 };
 
 template <typename> class SIGNAL;
@@ -306,6 +330,7 @@ enum class search_direction : u8 {
 BITMAP create_bitmap(u64 width, u64 height);
 void fill_bitmap(BITMAP &bitmap, u64 color);
 BITMAP bitmap_from_base64(const std::string &base64_string);
+BITMAP bitmap_from_png(const std::string &filepath);
 bool image_search(BITMAP &area, BITMAP &template_bitmap, u64 *found_x,
                   u64 *found_y, u64 x_start, u64 y_start, u64 x_end, u64 y_end,
                   u8 tolerance,
@@ -315,5 +340,6 @@ u64 query_performance_counter();
 u64 query_performance_frequency();
 u64 since_boot();
 u64 get_utc_minute();
+bool has_shiftlock();
 
 extern std::unordered_map<std::string, std::vector<u8>> FIELD_SIZES;

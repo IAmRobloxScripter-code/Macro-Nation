@@ -18,17 +18,21 @@ _________
 */
 void upper_left() {
   auto size = get_field_size();
-  walk(10, forwards);
+  u64 tilesX = size[0] / 3;
+  u64 tilesY = size[1] / 3;
+  walk(tilesY, forwards);
   sleep(20);
-  walk(size[0] - 10, left);
+  walk(size[0] - tilesX, left);
   sleep(20);
 }
 
 void upper_right() {
   auto size = get_field_size();
-  walk(10, forwards);
+  u64 tilesX = size[0] / 3;
+  u64 tilesY = size[1] / 3;
+  walk(tilesY, forwards);
   sleep(20);
-  walk(10, left);
+  walk(tilesX, left);
   sleep(20);
 }
 
@@ -42,17 +46,21 @@ void middle() {
 
 void lower_left() {
   auto size = get_field_size();
-  walk(size[1] - 10, forwards);
+  u64 tilesX = size[0] / 3;
+  u64 tilesY = size[1] / 3;
+  walk(size[1] - tilesY, forwards);
   sleep(20);
-  walk(size[0] - 10, left);
+  walk(size[0] - tilesX, left);
   sleep(20);
 }
 
 void lower_right() {
   auto size = get_field_size();
-  walk(size[1] - 10, forwards);
+  u64 tilesX = size[0] / 3;
+  u64 tilesY = size[1] / 3;
+  walk(size[1] - tilesY, forwards);
   sleep(20);
-  walk(10, left);
+  walk(tilesX, left);
   sleep(20);
 }
 

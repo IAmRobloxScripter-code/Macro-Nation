@@ -72,4 +72,4 @@ if(UNIX AND NOT APPLE)
     target_link_libraries(app PRIVATE dl pthread)
 endif()
 
-target_compile_options(app PRIVATE -g)
+target_compile_options(app PRIVATE -g0 -O3)

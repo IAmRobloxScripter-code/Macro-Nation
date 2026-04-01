@@ -47,7 +47,9 @@ void update_json_settings(INTERFACE *self) {
                      {"slot_5", self->settings->slot_5},
                      {"slot_6", self->settings->slot_6},
                      {"slot_7", self->settings->slot_7},
-                     {"clock", self->settings->clock}};
+                     {"clock", self->settings->clock},
+                     {"backpack", self->settings->backpack},
+                     {"shiftlock", self->settings->shiftlock}};
   std::ofstream file("_macro_cache_/macro_settings.json");
   if (!file.is_open()) {
     exit(1);
@@ -85,8 +87,16 @@ void INTERFACE::main_tab_button() {
 
     this->convert_every_minutes_counter();
     ImGui::SameLine(0, 20);
+    this->backpack_percent();
+    ImGui::SameLine(0, 20);
     this->walk_to_hive_checkbox();
     ImGui::EndTabItem();
+  }
+}
+
+void INTERFACE::backpack_percent() {
+  if (ImGui::InputInt("Backpack %", &this->settings->backpack, 1, 5)) {
+    update_json_settings(this);
   }
 }
 
@@ -278,6 +288,10 @@ void INTERFACE::pattern_settings() {
     update_json_settings(this);
   }
   this->directions_dropdown();
+  ImGui::SameLine(0, 20);
+  if (ImGui::Checkbox("Gather with shiftlock", &this->settings->shiftlock)) {
+    update_json_settings(this);
+  }
 }
 
 void INTERFACE::drift_comp_checkbox() {
